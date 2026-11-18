@@ -15,6 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
+  //hi again from mahomud :-)
   // Enable ONLY when the app is really behind a reverse proxy (nginx, Render, Railway...).
   // Otherwise a client could fake X-Forwarded-For and bypass the login rate limit.
   if (config.get<string>('TRUST_PROXY') === 'true') {
