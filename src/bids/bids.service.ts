@@ -37,7 +37,7 @@ export class BidsService {
     }
   }
 
-  /** Only the project owner sees the bids of a project. */
+  
   async findForProject(clientId: number, projectId: number, q: PaginationDto) {
     const project = await this.prisma.project.findUnique({ where: { id: projectId }, select: { clientId: true } });
     if (!project) throw new NotFoundException('Project not found');
@@ -61,7 +61,6 @@ export class BidsService {
     return paginated(data, total, q.page, q.limit);
   }
 
-  /** A freelancer sees only his own bids and their status. */
   async findMine(freelancerId: number, q: PaginationDto) {
     const where = { freelancerId };
     const [total, data] = await this.prisma.$transaction([

@@ -37,8 +37,8 @@ import { WalletModule } from './wallet/wallet.module';
         ADMIN_PASSWORD: Joi.string().min(8).optional(),
       }).options({ abortEarly: false }),
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]), // 100 requests / minute / IP
-    CacheModule.register({ isGlobal: true, ttl: 5 * 60_000 }), // in-memory store, TTL = safety net (5 min)
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]), 
+    CacheModule.register({ isGlobal: true, ttl: 5 * 60_000 }), 
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -50,7 +50,6 @@ import { WalletModule } from './wallet/wallet.module';
   ],
   controllers: [HealthController],
   providers: [
-    // Guard order matters: throttle first (also protects login), then authenticate, then authorize
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },

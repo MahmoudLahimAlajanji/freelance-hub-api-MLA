@@ -23,12 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
     });
   }
-
-  /**
-   * Runs on every protected request. One DB lookup makes logout / logout-others / ban
-   * effective immediately instead of waiting for the 15m access token to expire.
-   * The role is read from the DB (not from the token), so role changes apply instantly too.
-   */
+  
   async validate(payload: AccessPayload): Promise<JwtUser> {
     const session = await this.prisma.session.findUnique({
       where: { id: payload.sid },

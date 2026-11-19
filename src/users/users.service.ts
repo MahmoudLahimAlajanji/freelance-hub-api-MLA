@@ -19,7 +19,6 @@ export class UsersService {
     return user;
   }
 
-  /** Public: any visitor can view a freelancer's profile. Never exposes email/password. */
   async getFreelancer(userId: number) {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, role: 'FREELANCER', isBanned: false },
@@ -32,7 +31,6 @@ export class UsersService {
     return user;
   }
 
-  /** The profile is looked up by the JWT user id, so a freelancer can only ever edit their own. */
   updateProfile(userId: number, dto: UpdateFreelancerProfileDto) {
     return this.prisma.freelancerProfile.update({
       where: { userId },

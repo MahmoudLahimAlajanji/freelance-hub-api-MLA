@@ -10,15 +10,11 @@ import { DeliverDto } from './dto/deliver.dto';
 
 export const PLATFORM_FEE_PERCENT = 10;
 
-/**
- * Money-moving flows. Every flow runs in ONE $transaction and every state change is a
- * conditional (atomic) updateMany, so concurrent requests cannot double-spend or double-accept.
- */
+
 @Injectable()
 export class EscrowService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Accept a bid: lock project -> accept bid -> reject others -> move price balance -> held. */
   async acceptBid(clientId: number, projectId: number, bidId: number) {
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.findUnique({ where: { id: projectId } });
@@ -98,7 +94,6 @@ export class EscrowService {
     }
   }
 
-  /** Approve delivery: release escrow -> 90% freelancer, 10% platform (admin wallet). */
   async approveDelivery(clientId: number, projectId: number) {
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.findUnique({
@@ -112,7 +107,6 @@ export class EscrowService {
       }
       if (!project.delivery) throw new BadRequestException('No delivery has been submitted yet');
 
-      // Claim delivery + project first: a second concurrent approve gets count 0 and aborts
       const d = await tx.delivery.updateMany({
         where: { projectId, status: 'SUBMITTED' },
         data: { status: 'APPROVED' },
@@ -126,9 +120,8 @@ export class EscrowService {
 
       const price = new Prisma.Decimal(project.acceptedBid.price);
       const fee = price.mul(PLATFORM_FEE_PERCENT).div(100).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
-      const payout = price.sub(fee); // payout + fee == price exactly, no cent is lost
+      const payout = price.sub(fee);
 
-      // Release from the client's held balance (guarded: held must cover the price)
       const released = await tx.wallet.updateMany({
         where: { userId: clientId, heldBalance: { gte: price } },
         data: { heldBalance: { decrement: price } },
@@ -171,7 +164,6 @@ export class EscrowService {
     });
   }
 
-  /** Delivery files are NOT served statically: only the client, the winning freelancer or an admin can fetch them. */
   async getDeliveryFilePath(user: { userId: number; role: string }, projectId: number) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },

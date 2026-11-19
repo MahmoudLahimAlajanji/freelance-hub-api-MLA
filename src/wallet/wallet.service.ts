@@ -32,12 +32,12 @@ export class WalletService {
     return paginated(data, total, q.page, q.limit);
   }
 
-  /** No payment gateway in this version: the amount is simply credited. */
+  
   deposit(userId: number, dto: DepositDto) {
     return this.prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.update({
         where: { userId },
-        data: { balance: { increment: dto.amount } }, // atomic increment, safe under concurrency
+        data: { balance: { increment: dto.amount } }, 
         select: { id: true, balance: true, heldBalance: true },
       });
       await tx.walletTransaction.create({

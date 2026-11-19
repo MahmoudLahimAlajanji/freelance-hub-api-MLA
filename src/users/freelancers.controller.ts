@@ -22,7 +22,6 @@ export class FreelancersController {
     return this.users.getFreelancer(id);
   }
 
-  // NOTE: 'me' routes are declared with distinct verbs/paths so they never collide with ':id'
   @ApiBearerAuth()
   @Roles('FREELANCER')
   @Patch('me/profile')

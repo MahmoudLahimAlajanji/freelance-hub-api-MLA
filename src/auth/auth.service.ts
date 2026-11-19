@@ -15,8 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 
 const BCRYPT_ROUNDS = 10;
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-// Used to keep response time similar when the email does not exist (reduces user enumeration by timing)
-const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_ROUNDS);
+const DUMMY_HASH = bcrypt.hashSync('koko', BCRYPT_ROUNDS);
 
 @Injectable()
 export class AuthService {
@@ -92,7 +91,7 @@ export class AuthService {
     return tokens;
   }
 
-  /** Refresh Token Rotation + Reuse Detection. */
+  
   async refresh(refreshToken: string) {
     let payload: { sub: number; sid: string };
     try {
@@ -112,7 +111,6 @@ export class AuthService {
     }
 
     const oldHash = this.hash(refreshToken);
-    // An old (already rotated) token was presented => likely stolen => kill the whole session
     if (session.refreshTokenHash !== oldHash) {
       await this.revokeSession(session.id);
       throw new UnauthorizedException('Refresh token reuse detected');
@@ -124,7 +122,7 @@ export class AuthService {
     }
 
     const tokens = await this.signTokens(session.user, session.id);
-    // Atomic compare-and-swap: two concurrent refreshes with the same token cannot both win
+
     const swapped = await this.prisma.session.updateMany({
       where: { id: session.id, refreshTokenHash: oldHash, revokedAt: null },
       data: { refreshTokenHash: this.hash(tokens.refreshToken) },

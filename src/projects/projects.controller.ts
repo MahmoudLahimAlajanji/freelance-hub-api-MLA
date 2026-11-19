@@ -43,7 +43,7 @@ export class ProjectsController {
     return this.projects.findAll(q);
   }
 
-  // must be declared BEFORE ':id'
+  
   @ApiBearerAuth()
   @Roles('CLIENT')
   @Get('my')
